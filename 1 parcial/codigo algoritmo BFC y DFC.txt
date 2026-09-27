@@ -1,0 +1,227 @@
+/*****************************************
+ ***Técnica algoritmicas
+ ***Algoritmo BFC & DFC
+ ***Tipo: Teoria de grafos
+ ***Autor: Pedro Luis Pérez Barahona
+ ******************************************/
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <stack>
+#include <cstdlib>
+#include <ctime>
+#include <fstream>
+#include <algorithm> // Para convertir minúsculas a mayúsculas
+
+using namespace std;
+
+// Funcion para convertir un numero en una representacion de letras (A-Z, AA-ZZ, ...)
+string convertirLetra(int num) {
+    string resultado = "";
+    while (num >= 0) {
+        resultado = char('A' + (num % 26)) + resultado;
+        num = (num / 26) - 1;
+    }
+    return resultado;
+}
+
+class Grafo {
+public:
+    int numNodos;
+    vector<vector<int>> matrizAdyacencia;
+    vector<string> nodos;
+    vector<string> recorrido;
+
+    Grafo(int n) {
+        numNodos = n;
+        matrizAdyacencia.resize(n, vector<int>(n, 0));
+        for (int i = 0; i < n; i++) {
+            nodos.push_back(convertirLetra(i));
+        }
+    }
+
+    void agregarArista(int nodo1, int nodo2) {
+        matrizAdyacencia[nodo1][nodo2] = 1;
+        matrizAdyacencia[nodo2][nodo1] = 1;
+    }
+
+    void BFS(int inicio) {
+        vector<bool> visitado(numNodos, false);
+        queue<int> q;
+        recorrido.clear();
+
+        cout << "\nFuncionamiento BFS:\n";
+        cout << "1. Se marca el nodo inicial " << nodos[inicio] << " como visitado.\n";
+        cout << "2. Se agrega a la cola y se procesan sus vecinos.\n";
+
+        visitado[inicio] = true;
+        q.push(inicio);
+
+        cout << "\nRecorrido BFS: ";
+        while (!q.empty()) {
+            int actual = q.front();
+            q.pop();
+            cout << nodos[actual] << " ";
+            recorrido.push_back(nodos[actual]);
+
+            for (int i = 0; i < numNodos; i++) {
+                if (matrizAdyacencia[actual][i] == 1 && !visitado[i]) {
+                    visitado[i] = true;
+                    q.push(i);
+                }
+            }
+        }
+        cout << endl;
+    }
+
+    void DFS(int inicio) {
+        vector<bool> visitado(numNodos, false);
+        stack<int> s;
+        recorrido.clear();
+
+        cout << "\nFuncionamiento DFS (Preorden):\n";
+        cout << "1. Se marca el nodo inicial " << nodos[inicio] << " como visitado.\n";
+        cout << "2. Se usa una pila para procesar los nodos en profundidad.\n";
+
+        s.push(inicio);
+        cout << "\nRecorrido DFS (Preorden): ";
+        while (!s.empty()) {
+            int actual = s.top();
+            s.pop();
+
+            if (!visitado[actual]) {
+                visitado[actual] = true;
+                cout << nodos[actual] << " ";
+                recorrido.push_back(nodos[actual]);
+            }
+
+            for (int i = numNodos - 1; i >= 0; i--) {
+                if (matrizAdyacencia[actual][i] == 1 && !visitado[i]) {
+                    s.push(i);
+                }
+            }
+        }
+        cout << endl;
+    }
+
+    void visualizarGrafo() {
+        cout << "\nEstructura del Grafo:\n";
+        for (int i = 0; i < numNodos; i++) {
+            cout << "Nodo " << nodos[i] << " -> ";
+            for (int j = 0; j < numNodos; j++) {
+                if (matrizAdyacencia[i][j] == 1) {
+                    cout << nodos[j] << " ";
+                }
+            }
+            cout << endl;
+        }
+    }
+
+    void mostrarArbolBinario() {
+        cout << "\nEstructura simulada como arbol binario:\n";
+        int nivel = 0, contador = 1;
+        for (int i = 0; i < numNodos; i++) {
+            if (contador == (1 << nivel)) {
+                cout << endl;
+                nivel++;
+                contador = 0;
+            }
+            cout << nodos[i] << " ";
+            contador++;
+        }
+        cout << endl;
+    }
+
+    void exportarMatriz() {
+        ofstream archivo("matriz_adyacencia.csv");
+        if (archivo.is_open()) {
+            for (const auto& fila : matrizAdyacencia) {
+                for (size_t i = 0; i < fila.size(); i++) {
+                    archivo << fila[i];
+                    if (i < fila.size() - 1) archivo << ",";
+                }
+                archivo << endl;
+            }
+            archivo.close();
+            cout << "\nMatriz exportada como 'matriz_adyacencia.csv'.\n";
+        } else {
+            cout << "\nError al guardar la matriz.\n";
+        }
+    }
+};
+
+int main() {
+    srand(time(0));
+
+    int numNodos, algoritmo;
+    cout << "1.- Que algoritmo quieres usar BFS(a) o DFS(b): ";
+    char alg;
+    cin >> alg;
+    algoritmo = (alg == 'a' || alg == 'A') ? 1 : 2;
+
+    cout << "2.- Ingresar el numero de nodos: ";
+    cin >> numNodos;
+
+    Grafo grafo(numNodos);
+
+    cout << "3.- Quieres las conexiones Random (a) o ingresar manualmente (b): ";
+    char conexionesModo;
+    cin >> conexionesModo;
+
+    if (conexionesModo == 'a' || conexionesModo == 'A') {
+        for (int i = 0; i < numNodos - 1; i++) {
+            int n1 = rand() % numNodos;
+            int n2 = rand() % numNodos;
+            while (n1 == n2) n2 = rand() % numNodos;
+            grafo.agregarArista(n1, n2);
+        }
+    } else {
+        cout << "Ingrese el numero de conexiones entre nodos: ";
+        int conexiones;
+        cin >> conexiones;
+        cout << "Ingrese las conexiones (nodo1 nodo2) usando letras:\n";
+        for (int i = 0; i < conexiones; i++) {
+            string nodo1, nodo2;
+            cin >> nodo1 >> nodo2;
+            transform(nodo1.begin(), nodo1.end(), nodo1.begin(), ::toupper);
+            transform(nodo2.begin(), nodo2.end(), nodo2.begin(), ::toupper);
+            int idx1 = nodo1[0] - 'A';
+            int idx2 = nodo2[0] - 'A';
+            grafo.agregarArista(idx1, idx2);
+        }
+    }
+
+    cout << "4.- Visualizar el grafo (S/N): ";
+    char verGrafo;
+    cin >> verGrafo;
+    if (verGrafo == 'S' || verGrafo == 's') {
+        grafo.visualizarGrafo();
+    }
+
+    cout << "5.- Visualizacion del recorrido en el grafo: ";
+    string inicio;
+    cout << "\nIngrese el nodo de inicio (letra): ";
+    cin >> inicio;
+    transform(inicio.begin(), inicio.end(), inicio.begin(), ::toupper);
+
+    int inicioIdx = -1;
+    for (int i = 0; i < numNodos; i++) {
+        if (grafo.nodos[i] == inicio) {
+            inicioIdx = i;
+            break;
+        }
+    }
+
+    if (inicioIdx == -1) {
+        cout << "Error: Nodo ingresado no valido.\n";
+        return 1;
+    }
+
+    if (algoritmo == 1) {
+        grafo.BFS(inicioIdx);
+    } else {
+        grafo.DFS(inicioIdx);
+    }
+
+    return 0;
+}

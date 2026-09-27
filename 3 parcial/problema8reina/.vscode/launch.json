@@ -1,0 +1,68 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+// Realiza el backtracking con comprobación O(1) usando vectores para columnas y diagonales
+void backtrack(int n,
+               int row,
+               vector<int> &pos, 
+               vector<bool> &col, 
+               vector<bool> &diag1, 
+               vector<bool> &diag2, 
+               vector<vector<int>> &solutions) 
+{
+    if (row == n) {
+        solutions.push_back(pos);
+        return;
+    }
+    for (int c = 0; c < n; ++c) {
+        int d1 = row - c + n;   // índice para la diagonal “\”
+        int d2 = row + c;       // índice para la diagonal “/”
+        if (!col[c] && !diag1[d1] && !diag2[d2]) {
+            pos[row] = c;
+            col[c] = diag1[d1] = diag2[d2] = true;
+
+            backtrack(n, row + 1, pos, col, diag1, diag2, solutions);
+
+            col[c] = diag1[d1] = diag2[d2] = false;  // ← retroceso
+        }
+    }
+}
+
+int main() {
+    int n;
+    cout << "Ingresar la cantidad de reinas: ";
+    cin >> n;
+
+    // Para n = 2 o 3 no hay soluciones
+    if (n > 1 && n < 4) {
+        cout << "Para " << n << " reinas no existen soluciones válidas.\n";
+        return 0;
+    }
+
+    // Estructuras de estado
+    vector<int> pos(n, -1);
+    vector<bool> col(n, false);
+    // Diagonales hay 2n-1 de cada tipo, pero desplazamos índices para no usar negativos
+    vector<bool> diag1(2 * n + 1, false);
+    vector<bool> diag2(2 * n + 1, false);
+
+    vector<vector<int>> solutions;
+    backtrack(n, 0, pos, col, diag1, diag2, solutions);
+
+    // Mostrar resultados
+    if (solutions.empty()) {
+        cout << "No se encontraron soluciones para " << n << " reinas.\n";
+    } else {
+        cout << "Total soluciones encontradas: " << solutions.size() << "\n\n";
+        for (size_t i = 0; i < solutions.size(); ++i) {
+            cout << "Solucion " << i + 1 << ": ";
+            for (int c : solutions[i]) {
+                cout << c << " ";
+            }
+            cout << "\n";
+        }
+    }
+    return 0;
+}

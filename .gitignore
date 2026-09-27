@@ -1,0 +1,45 @@
+# Windows
+desktop.ini
+Desktop.ini
+Thumbs.db
+
+# macOS
+.DS_Store
+
+# Ejecutables y compilados
+*.exe
+*.out
+*.o
+*.obj
+*.dll
+
+# Visual Studio Code
+.vscode/
+
+# Visual Studio
+.vs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Repositorios/dependencias externas
+vcpkg/
+
+# Archivos comprimidos
+*.zip
+*.rar
+*.7z
+
+# Temporales
+*.tmp
+*.temp
+*.log
+
+# Variables de entorno
+.env
+*.mp4
+*.mp4

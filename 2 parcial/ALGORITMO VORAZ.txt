@@ -1,0 +1,244 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <random>
+#include <ctime>
+#include <fstream>
+#include <unordered_map>
+#include <unordered_set>
+#include <queue>
+#include <cstdlib>
+#include <cmath>
+using namespace std;
+
+// Estructura para representar una arista con su peso
+struct Edge {
+    string node1;
+    string node2;
+    int weight;
+};
+
+// Función para generar la etiqueta de un nodo según su índice (0-indexado)
+string getNodeLabel(int index) {
+    // Alfabeto español (27 letras, incluyendo "Ñ")
+    vector<string> alphabet = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "Ñ", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
+    if(index < 27) {
+        return alphabet[index];
+    } else {
+        int adjustedIndex = index - 27;
+        int group = adjustedIndex / 27 + 1;
+        int letterIndex = adjustedIndex % 27;
+        string letter = alphabet[letterIndex];
+        for (auto &c : letter)
+            c = tolower(c);
+        return letter + to_string(group);
+    }
+}
+
+// Función para normalizar la etiqueta (para comparación case-insensitive)
+// Si es de un solo carácter se convierte a mayúscula, si es más de uno, se convierte a minúscula.
+string normalizeLabel(const string &label) {
+    string norm = label;
+    if(label.size() == 1) {
+        transform(norm.begin(), norm.end(), norm.begin(), ::toupper);
+    } else {
+        transform(norm.begin(), norm.end(), norm.begin(), ::tolower);
+    }
+    return norm;
+}
+
+// Estructura para la búsqueda Greedy Best First Search (nodo + heurística)
+struct SearchNode {
+    string label;
+    int h; // valor heurístico
+    bool operator>(const SearchNode &other) const {
+        return h > other.h;
+    }
+};
+
+int main() {
+    int numNodes;
+    cout << "Colocar el numero de nodo del grafo (entre 10 y 98), los pesos seran random: ";
+    cin >> numNodes;
+    
+    if(numNodes < 10 || numNodes > 98) {
+        cout << "El numero debe estar entre 10 y 98." << endl;
+        return 1;
+    }
+    
+    // Generar etiquetas para los nodos
+    vector<string> nodes;
+    for (int i = 0; i < numNodes; i++) {
+        nodes.push_back(getNodeLabel(i));
+    }
+    
+    // Mapeo de nodo a índice para la heurística
+    unordered_map<string, int> nodeIndex;
+    for (int i = 0; i < numNodes; i++) {
+        nodeIndex[nodes[i]] = i;
+    }
+    
+    // Mapeo normalizado para entrada case-insensitive
+    unordered_map<string, string> normalizedToLabel;
+    for (const auto &node : nodes) {
+        normalizedToLabel[normalizeLabel(node)] = node;
+    }
+    
+    // Configurar generador de números aleatorios para los pesos
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> dis(1, 100);
+    
+    // Construir el grafo completo y la lista de aristas con pesos aleatorios
+    vector<Edge> edges;
+    unordered_map<string, vector<pair<string, int>>> adjacencyList;
+    for (int i = 0; i < numNodes; i++) {
+        for (int j = i + 1; j < numNodes; j++) {
+            Edge e;
+            e.node1 = nodes[i];
+            e.node2 = nodes[j];
+            e.weight = dis(gen);
+            edges.push_back(e);
+            adjacencyList[nodes[i]].push_back({nodes[j], e.weight});
+            adjacencyList[nodes[j]].push_back({nodes[i], e.weight});
+        }
+    }
+    
+    // Ordenar y mostrar la lista de aristas
+    sort(edges.begin(), edges.end(), [](const Edge &a, const Edge &b) {
+        return a.weight < b.weight;
+    });
+    cout << "\nLista de aristas ordenadas por peso:" << endl;
+    for (const auto &e : edges) {
+        cout << e.node1 << " - " << e.node2 << " : " << e.weight << endl;
+    }
+    
+    // Opción: visualizar grafo en terminal (lista de adyacencia)
+    char opcionVisual;
+    cout << "\n¿Desea visualizar el grafo en la terminal? (s/n): ";
+    cin >> opcionVisual;
+    if(opcionVisual == 's' || opcionVisual == 'S') {
+        cout << "\nRepresentación del grafo (Lista de Adyacencia):" << endl;
+        for (const auto &node : nodes) {
+            cout << node << " -> ";
+            auto vecinos = adjacencyList[node];
+            sort(vecinos.begin(), vecinos.end(), [](const pair<string, int> &a, const pair<string, int> &b) {
+                return a.first < b.first;
+            });
+            for (const auto &vecino : vecinos) {
+                cout << "[" << vecino.first << " (" << vecino.second << ")] ";
+            }
+            cout << endl;
+        }
+    }
+    
+    // Generar archivo CSV con datos del grafo
+    ofstream csvFile("grafo.csv");
+    csvFile << "Nodo1,Nodo2,Peso\n";
+    for (const auto &e : edges) {
+        csvFile << e.node1 << "," << e.node2 << "," << e.weight << "\n";
+    }
+    csvFile.close();
+    cout << "\nSe ha generado el archivo 'grafo.csv'.\n";
+    
+    // Preguntar si se aplica el algoritmo Greedy Best First Search
+    char opcionAlgoritmo;
+    cout << "\nIMPLEMENTAMOS EL ALGORITMO VORAZ (Greedy Best First Search) s/n: ";
+    cin >> opcionAlgoritmo;
+    
+    if(opcionAlgoritmo == 's' || opcionAlgoritmo == 'S') {
+        // Nodo inicial fijo: "A"
+        string start = normalizedToLabel[normalizeLabel("A")];
+        cout << "\nLista de nodos disponibles: ";
+        for (const auto &n : nodes) {
+            cout << n << " ";
+        }
+        cout << "\nDesde el nodo " << start << ", ¿hasta qué nodo quieres llegar?: ";
+        string goalInput;
+        cin >> goalInput;
+        string goalNormalized = normalizeLabel(goalInput);
+        if (normalizedToLabel.find(goalNormalized) == normalizedToLabel.end()) {
+            cout << "El nodo " << goalInput << " no existe en el grafo.\n";
+        } else {
+            string goal = normalizedToLabel[goalNormalized];
+            cout << "\nBuscando camino desde " << start << " hasta " << goal << " utilizando Greedy Best First Search...\n";
+            
+            // Heurística: diferencia absoluta entre índices
+            auto heuristic = [&](const string &node) -> int {
+                return abs(nodeIndex[node] - nodeIndex[goal]);
+            };
+            
+            priority_queue<SearchNode, vector<SearchNode>, greater<SearchNode>> frontier;
+            frontier.push({start, heuristic(start)});
+            unordered_map<string, string> came_from;
+            came_from[start] = "";
+            unordered_set<string> visited;
+            
+            bool found = false;
+            while(!frontier.empty()) {
+                SearchNode current = frontier.top();
+                frontier.pop();
+                if(current.label == goal) {
+                    found = true;
+                    break;
+                }
+                if(visited.count(current.label))
+                    continue;
+                visited.insert(current.label);
+                for(auto &neighbor_pair : adjacencyList[current.label]) {
+                    string neighbor = neighbor_pair.first;
+                    if(visited.count(neighbor) == 0) {
+                        came_from[neighbor] = current.label;
+                        frontier.push({neighbor, heuristic(neighbor)});
+                    }
+                }
+            }
+            
+            if(found) {
+                // Reconstruir camino y sumar los pesos
+                vector<string> path;
+                string current = goal;
+                while(current != "") {
+                    path.push_back(current);
+                    current = came_from[current];
+                }
+                reverse(path.begin(), path.end());
+                
+                int totalWeight = 0;
+                for (size_t i = 0; i < path.size()-1; i++) {
+                    string from = path[i], to = path[i+1];
+                    for (const auto &edgePair : adjacencyList[from]) {
+                        if(edgePair.first == to) {
+                            totalWeight += edgePair.second;
+                            break;
+                        }
+                    }
+                }
+                
+                cout << "Camino encontrado (Greedy Best First Search): ";
+                for (const auto &node : path)
+                    cout << node << " ";
+                cout << "\nSuma total de los pesos del camino: " << totalWeight << "\n";
+                
+                // Generar archivo "resultado.csv" con el recorrido y la suma total
+                ofstream resultFile("resultado.csv");
+                resultFile << "Recorrido,SumaTotal\n";
+                // Concatenar el recorrido en un solo string, separando con "->"
+                string recorrido;
+                for (size_t i = 0; i < path.size(); i++) {
+                    recorrido += path[i];
+                    if(i < path.size() - 1)
+                        recorrido += "->";
+                }
+                resultFile << "\"" << recorrido << "\"," << totalWeight << "\n";
+                resultFile.close();
+                cout << "Se ha generado el archivo 'resultado.csv' con el recorrido y la suma total.\n";
+            } else {
+                cout << "No se encontró un camino desde " << start << " hasta " << goal << ".\n";
+            }
+        }
+    }
+    
+    return 0;
+}

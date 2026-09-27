@@ -1,0 +1,33 @@
+.
+./0 PLANEACION DIDACTICA
+./0 PLANEACION DIDACTICA/desktop.ini
+./0 PLANEACION DIDACTICA/planeacionlywoiz2x.pdf
+./0 PLANEACION DIDACTICA/programatv1npq0u.pdf
+./1 parcial
+./1 parcial/algoritmo A+.txt
+./1 parcial/algortimo BFS y DFS.mp4
+./1 parcial/codigo algoritmo BFC y DFC.txt
+./1 parcial/desktop.ini
+./1 parcial/GRAFOO.txt
+./1 parcial/TAREA_El_algoritmo_de_Dijkstra_(TECNICAS_ALGORITMICAS).ipynb
+./2 parcial
+./2 parcial/ALGORITMO VORAZ.txt
+./2 parcial/ALGORITMOS VORAZ.mp4
+./2 parcial/desktop.ini
+./2 parcial/matriz_adyacencia.csv
+./2 parcial/POO examen segundo semestre latex camino mas corto algoritmo dikftark.pdf
+./2 parcial/Segundo_parcial_tecnicas_algoritmicas__EXAMEN_.pdf
+./3 parcial
+./3 parcial/backtraking tecnica algoritmica.mp4
+./3 parcial/desktop.ini
+./3 parcial/Documento de Técnicas Algorítmicas Recursividad y Back tracking Problema de las 8 Reina.pdf
+./3 parcial/Introduccion_a_la_recursividad.pdf
+./3 parcial/problema8reina
+./3 parcial/problema8reina.zip
+./3 parcial/Segundo parcial tecnicas algoritmicas (EXAMEN).zip
+./3 parcial/Técnicas Algorítmicas Recursividad y Back tracking Problema de las 8 Reina.pdf
+./desktop.ini
+./estructura_tecnicas_algoritmicas.txt
+./Grafo
+./Grafo/desktop.ini
+./Grafo/grafo1

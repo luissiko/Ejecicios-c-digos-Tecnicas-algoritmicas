@@ -1,0 +1,169 @@
+/******************************************************************************
+UNIVERSIDAD DEL CARIBE
+Alumno : Pedro Luis Perez Barahona
+Matricula : 190300395
+Asignatura : Técnicas algoritmicas
+Profesor : Ricardo Armando Ruíz Hernández
+
+El algoritmo A* (A estrella) es un algoritmo de búsqueda y recorrido utilizado principalmente
+en el campo de la inteligencia artificial para encontrar el camino más corto entre dos puntos
+en un espacio de búsqueda, como un mapa o un gráfico. A* es una combinación de dos métodos:
+la búsqueda por costo uniforme (que busca el camino con el menor costo) y la búsqueda voraz
+(que explora las rutas más prometedoras). Utiliza una función heurística para estimar el costo
+restante desde el nodo actual hasta el objetivo, permitiendo que el algoritmo seleccione de manera
+inteligente el siguiente nodo a explorar.
+
+El algoritmo A* se define por la siguiente función de evaluación en cada paso:
+f(n) = g(n) + h(n)
+donde:
+- f(n) es el costo total estimado del nodo n,
+- g(n) es el costo desde el inicio hasta el nodo n,
+- h(n) es la estimación del costo desde n hasta el objetivo (función heurística).
+
+A* garantiza encontrar el camino más corto si la función heurística es admisible (nunca sobreestima
+el costo real).
+
+*******************************************************************************/
+
+#include <iostream>
+#include <vector>
+#include <cstdlib>
+#include <ctime>
+#include <cctype>
+
+using namespace std;
+
+// Función para obtener la etiqueta del nodo
+char getNodeLabel(int index) {
+    return 'A' + index;
+}
+
+// Función para imprimir los nodos seleccionados y sus costos en formato simplificado
+void printNodes(const vector<pair<int, int>> &positions, const vector<int> &costs, char startNode, char endNode) {
+    cout << "\nPosiciones de los nodos seleccionados:\n";
+    for (size_t i = 0; i < positions.size(); i++) {
+        cout << getNodeLabel(i) << " en (" << static_cast<char>('a' + positions[i].second) << ", " << static_cast<char>('a' + positions[i].first) << ") con costo " << costs[i] << "\n";
+    }
+}
+
+// Función para visualizar el nodo inicial y final en una cuadrícula 27x27
+void visualizeNodes(char startNode, char endNode, pair<int, int> startPos, pair<int, int> endPos) {
+    const int gridSize = 27;
+    vector<vector<string>> grid(gridSize, vector<string>(gridSize, "   "));
+    
+    grid[startPos.second][startPos.first] = "S";
+    grid[endPos.second][endPos.first] = "E";
+    
+    cout << "\n   ";
+    for (char c = 'a'; c < 'a' + gridSize; c++) {
+        cout << c << "   ";
+    }
+    cout << "\n";
+    
+    for (int i = 0; i < gridSize; i++) {
+        cout << "  +";
+        for (int j = 0; j < gridSize; j++) {
+            cout << "---+";
+        }
+        cout << "\n" << static_cast<char>('a' + i) << " |";
+        for (int j = 0; j < gridSize; j++) {
+            cout << grid[i][j] << "|";
+        }
+        cout << "\n";
+    }
+    cout << "  +";
+    for (int j = 0; j < gridSize; j++) {
+        cout << "---+";
+    }
+    cout << "\n";
+}
+
+// Función para calcular el costo total del recorrido
+template<typename T>
+void calculateTotalCost(const vector<vector<int>> &costs, char startNode, char endNode, const vector<T> &positions) {
+    startNode = toupper(startNode);
+    endNode = toupper(endNode);
+    
+    int startIndex = startNode - 'A';
+    int endIndex = endNode - 'A';
+    
+    if (startIndex < 0 || startIndex >= costs.size() || endIndex < 0 || endIndex >= costs.size()) {
+        cout << "Nodos inválidos. Asegúrate de ingresar letras dentro del rango.\n";
+        return;
+    }
+
+    int totalCost = 0;
+    vector<int> pathCosts;
+
+    cout << "\nSuma del recorrido:\n";
+    
+    if (startIndex < endIndex) {
+        for (int i = startIndex; i < endIndex; i++) {
+            cout << getNodeLabel(i) << " -> " << getNodeLabel(i + 1) << " = " << costs[i][i + 1] << "\n";
+            totalCost += costs[i][i + 1];
+            pathCosts.push_back(costs[i][i + 1]);
+        }
+    } else {
+        for (int i = startIndex; i > endIndex; i--) {
+            cout << getNodeLabel(i) << " -> " << getNodeLabel(i - 1) << " = " << costs[i][i - 1] << "\n";
+            totalCost += costs[i][i - 1];
+            pathCosts.push_back(costs[i][i - 1]);
+        }
+    }
+
+    cout << "\nEl costo total del recorrido de " << startNode << " a " << endNode << " es: " << totalCost << "\n";
+    
+    printNodes(positions, pathCosts, startNode, endNode);
+    
+    char visualize;
+    cout << "\n¿Quieres visualizar el nodo inicial y final? (S/N): ";
+    cin >> visualize;
+    if (toupper(visualize) == 'S') {
+        visualizeNodes(startNode, endNode, positions[startIndex], positions[endIndex]);
+    }
+}
+
+// Función principal
+void runProgram() {
+    int nodes;
+    cout << "Ingrese el número de nodos (1-26): ";
+    cin >> nodes;
+    if (nodes < 1 || nodes > 26) {
+        cout << "Número de nodos inválido.\n";
+        return;
+    }
+
+    vector<vector<int>> costs(nodes, vector<int>(nodes, 0));
+    srand(time(0));
+    
+    for (int i = 0; i < nodes; i++) {
+        for (int j = i + 1; j < nodes; j++) {
+            costs[i][j] = rand() % 9 + 1;
+            costs[j][i] = costs[i][j];
+        }
+    }
+
+    char startNode, endNode;
+    cout << "\nQuieres llegar de un nodo a otro?";
+    cout << "\nEscoge nodo inicial: ";
+    cin >> startNode;
+    cout << "Escoge nodo final: ";
+    cin >> endNode;
+    
+    vector<pair<int, int>> positions = { {4, 3}, {7, 1}, {5, 5}, {3, 7}, {8, 9} }; // Posiciones ejemplo
+    
+    calculateTotalCost(costs, startNode, endNode, positions);
+}
+
+int main() {
+    char choice;
+    do {
+        runProgram();
+        cout << "\n¿Quieres empezar otra vez? (S/N): ";
+        cin >> choice;
+        choice = toupper(choice);
+    } while (choice == 'S');
+
+    cout << "Saliendo del programa...\n";
+    return 0;
+}
